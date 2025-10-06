@@ -1,4 +1,3 @@
-using JobAPI;
 using JobAPI.Data;
 using JobAPI.Formatters;
 using JobAPI.Repositories;
@@ -25,7 +24,6 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IJobService, JobService>();
 
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
-builder.Services.AddScoped<ExceptionHandler>();
 
 var app = builder.Build();
 
