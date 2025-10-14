@@ -1,57 +1,63 @@
 ﻿@model IEnumerable<SharedLibrary.DTOs.JobReadDto>
-
+@using WebClient.Models
 @{
-    ViewData["Title"] = "View";
+    ViewData["Title"] = "Jobs";
+    var pageNumber = (int)ViewData["PageNumber"];
+    var pageSize = (int)ViewData["PageSize"];
+    var totalRecords = (int)ViewData["TotalRecords"];
+    var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
 }
 
-<h1>View</h1>
+<h1>Jobs</h1>
 
 <p>
     <a asp-action="Create">Create New</a>
 </p>
+
+<form asp-action="Index" method="get">
+    <div class="form-actions no-color">
+        <p>
+            Find by name: <input type="text" name="SearchTerm" value="@ViewData["CurrentFilter"]" />
+            <input type="submit" value="Search" class="btn btn-default" /> |
+            <a asp-action="Index">Back to Full List</a>
+        </p>
+    </div>
+</form>
+
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Id)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["TitleSortParm"]" asp-route-searchTerm="@ViewData["CurrentFilter"]">Title</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Title)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["CompanySortParm"]" asp-route-searchTerm="@ViewData["CurrentFilter"]">Company</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Company)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["LocationSortParm"]" asp-route-searchTerm="@ViewData["CurrentFilter"]">Location</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Location)
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["SalarySortParm"]" asp-route-searchTerm="@ViewData["CurrentFilter"]">Salary</a>
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Salary)
+                Experience
             </th>
             <th>
-                @Html.DisplayNameFor(model => model.Experience)
+                Description
             </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CreatedAt)
-            </th>
-           
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                    @Html.DisplayFor(modelItem => item.Id)
-            </td>
+        @foreach (var item in Model)
+        {
+            <tr>
                 <td>
                     @Html.DisplayFor(modelItem => item.Title)
                 </td>
-            <td>
+                <td>
                     @Html.DisplayFor(modelItem => item.Company)
-            </td>
+                </td>
                 <td>
                     @Html.DisplayFor(modelItem => item.Location)
                 </td>
@@ -65,14 +71,51 @@
                     @Html.DisplayFor(modelItem => item.Description)
                 </td>
                 <td>
-                    @Html.DisplayFor(modelItem => item.CreatedAt)
-                </td>
-            <td>
                     <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
                     <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
                     <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
-}
+                </td>
+            </tr>
+        }
     </tbody>
 </table>
+
+<div>
+    Page @pageNumber of @totalPages
+</div>
+
+<ul class="pagination">
+    @if (pageNumber > 1)
+    {
+        <li class="page-item">
+            <a class="page-link" asp-action="Index"
+               asp-route-sortOrder="@ViewData["CurrentSort"]"
+               asp-route-pageNumber="@(pageNumber - 1)"
+               asp-route-pageSize="@pageSize"
+               asp-route-searchTerm="@ViewData["CurrentFilter"]">Previous</a>
+        </li>
+    }
+
+    @for (var i = 1; i <= totalPages; i++)
+    {
+        <li class="page-item @(i == pageNumber ? "active" : "")">
+            <a class="page-link" asp-action="Index"
+               asp-route-sortOrder="@ViewData["CurrentSort"]"
+               asp-route-pageNumber="@i"
+               asp-route-pageSize="@pageSize"
+               asp-route-searchTerm="@ViewData["CurrentFilter"]">@i</a>
+        </li>
+    }
+
+    @if (pageNumber < totalPages)
+    {
+        <li class="page-item">
+            <a class="page-link" asp-action="Index"
+               asp-route-sortOrder="@ViewData["CurrentSort"]"
+               asp-route-pageNumber="@(pageNumber + 1)"
+               asp-route-pageSize="@pageSize"
+               asp-route-searchTerm="@ViewData["CurrentFilter"]">Next</a>
+        </li>
+    }
+</ul>
+

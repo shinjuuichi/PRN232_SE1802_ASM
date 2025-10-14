@@ -17,6 +17,10 @@ namespace WebClient.Services
         public HttpClientApi(HttpClient client)
         {
             _client = client;
+            if (_client.DefaultRequestHeaders.Accept.All(h => h.MediaType != "application/json"))
+            {
+                _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+            }
             if (_client.DefaultRequestHeaders.Accept.All(h => h.MediaType != "text/csv"))
             {
                 _client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("text/csv"));
@@ -27,16 +31,32 @@ namespace WebClient.Services
         {
             var resp = await _client.GetAsync(relativeUrl);
             if (!resp.IsSuccessStatusCode) return default;
-            var csvContent = await resp.Content.ReadAsStringAsync();
-            return ParseCsvSingle<T>(csvContent);
+
+            var stream = await resp.Content.ReadAsStreamAsync();
+            if (resp.Content.Headers.ContentType?.MediaType == "text/csv")
+            {
+                using var reader = new StreamReader(stream);
+                var csvContent = await reader.ReadToEndAsync();
+                return ParseCsvSingle<T>(csvContent);
+            }
+            return await JsonSerializer.DeserializeAsync<T>(stream, _jsonOptions);
         }
 
         public async Task<IEnumerable<T>?> GetListAsync<T>(string relativeUrl)
         {
             var resp = await _client.GetAsync(relativeUrl);
             if (!resp.IsSuccessStatusCode) return default;
-            var csvContent = await resp.Content.ReadAsStringAsync();
-            return ParseCsvList<T>(csvContent);
+
+            var stream = await resp.Content.ReadAsStreamAsync();
+            if (resp.Content.Headers.ContentType?.MediaType == "text/csv")
+            {
+                using var reader = new StreamReader(stream);
+                var csvContent = await reader.ReadToEndAsync();
+                return ParseCsvList<T>(csvContent);
+            }
+
+            var odataResponse = await JsonSerializer.DeserializeAsync<ODataResponse<T>>(stream, _jsonOptions);
+            return odataResponse?.Value;
         }
 
         private T? ParseCsvSingle<T>(string csvContent)

@@ -51,5 +51,10 @@ namespace JobAPI.Repositories
             await _context.SaveChangesAsync();
             return true;
         }
+
+        public IQueryable<T> GetQueryable()
+        {
+            return _dbSet.AsQueryable();
+        }
     }
 }
