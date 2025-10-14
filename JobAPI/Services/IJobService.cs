@@ -1,5 +1,4 @@
-﻿
-using SharedLibrary.DTOs;
+﻿using SharedLibrary.DTOs;
 
 namespace JobAPI.Services
 {
@@ -10,5 +9,6 @@ namespace JobAPI.Services
         Task<IEnumerable<JobReadDto>> GetAllStudentsAsync();
         Task<JobReadDto?> UpdateStudentAsync(int id, JobUpdateDto account);
         Task<bool> DeleteStudentAsync(int id);
+        IQueryable<JobReadDto> GetAllAsQueryable();
     }
 }

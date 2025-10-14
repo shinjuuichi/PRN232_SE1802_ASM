@@ -1,16 +1,18 @@
 ﻿using JobAPI.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using SharedLibrary.DTOs;
 
-[Route("api/[controller]")]
+[Route("odata/Jobs")]
 [ApiController]
 public class JobController(IJobService _accountService) : ControllerBase
 {
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<JobReadDto>>> GetAll()
+    [EnableQuery]
+    public IQueryable<JobReadDto> GetAll()
     {
-        var accounts = await _accountService.GetAllStudentsAsync();
-        return Ok(accounts);
+        var accounts = _accountService.GetAllAsQueryable();
+        return accounts;
     }
 
     [HttpGet("{id}")]

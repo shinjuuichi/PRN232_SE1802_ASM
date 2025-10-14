@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using JobAPI.Models;
 using JobAPI.Repositories;
 using SharedLibrary.DTOs;
@@ -30,6 +31,11 @@ namespace JobAPI.Services
         {
             var accounts = await _repository.GetAllAsync();
             return accounts.Select(account => _mapper.Map<JobReadDto>(account)).ToList();
+        }
+
+        public IQueryable<JobReadDto> GetAllAsQueryable()
+        {
+            return _repository.GetQueryable().ProjectTo<JobReadDto>(_mapper.ConfigurationProvider);
         }
 
         public async Task<JobReadDto?> UpdateStudentAsync(int id, JobUpdateDto account)

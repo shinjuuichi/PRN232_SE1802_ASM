@@ -31,7 +31,7 @@ namespace JobAPI.Formatters
 
             if (context.Object is IEnumerable<JobReadDto> students)
             {
-                buffer.AppendLine("Id,Title,Company,Location,Salary,Experience,Description");
+                buffer.AppendLine("Id,Title,Company,Location,Salary,Experience,Description,CreatedAt");
 
                 foreach (var student in students)
                 {
@@ -41,7 +41,8 @@ namespace JobAPI.Formatters
                         $"\"{EscapeCsvField(student.Location)}\"," +
                         $"\"{EscapeCsvField(student.Salary.ToString())}\"," +
                         $"\"{EscapeCsvField(student.Experience.ToString())}\"," +
-                        $"\"{EscapeCsvField(student.Experience.ToString())}\"");
+                        $"\"{EscapeCsvField(student.Description)}\"," +
+                         $"\"{EscapeCsvField(student.CreatedAt.ToString())}\"");
                 }
             }
             else if (context.Object is JobReadDto student)
@@ -54,13 +55,14 @@ namespace JobAPI.Formatters
                      $"\"{EscapeCsvField(student.Location)}\"," +
                      $"\"{EscapeCsvField(student.Salary.ToString())}\"," +
                      $"\"{EscapeCsvField(student.Experience.ToString())}\"," +
-                     $"\"{EscapeCsvField(student.Experience.ToString())}\"");
+                     $"\"{EscapeCsvField(student.Description)}\"," +
+                     $"\"{EscapeCsvField(student.CreatedAt.ToString())}\"");
             }
 
             await response.WriteAsync(buffer.ToString(), selectedEncoding);
         }
 
-        private static string EscapeCsvField(string field)
+        private static string EscapeCsvField(string? field)
         {
             if (string.IsNullOrEmpty(field))
                 return string.Empty;

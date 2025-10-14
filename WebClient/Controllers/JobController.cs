@@ -1,18 +1,53 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SharedLibrary.DTOs;
+using WebClient.Models;
 using WebClient.Services;
 
 namespace WebClient.Controllers
 {
     public class JobController(IHttpClientApi _api) : Controller
     {
-        private const string AccountsPath = "api/job";
+        private const string AccountsPath = "odata/Jobs";
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm, string? sortOrder, int? pageNumber, int? pageSize)
         {
-            var accounts = await _api.GetListAsync<JobReadDto>(AccountsPath)
-                           ?? Enumerable.Empty<JobReadDto>();
-            return View(accounts);
+            ViewData["CurrentFilter"] = searchTerm;
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["TitleSortParm"] = string.IsNullOrEmpty(sortOrder) ? "title_desc" : "";
+            ViewData["CompanySortParm"] = sortOrder == "company" ? "company_desc" : "company";
+            ViewData["LocationSortParm"] = sortOrder == "location" ? "location_desc" : "location";
+            ViewData["SalarySortParm"] = sortOrder == "salary" ? "salary_desc" : "salary";
+
+            var query = new List<string>();
+
+            if (!string.IsNullOrEmpty(searchTerm))
+            {
+                query.Add($"$filter=contains(tolower(Title), '{searchTerm.ToLower()}') or contains(tolower(Company), '{searchTerm.ToLower()}')");
+            }
+
+            if (!string.IsNullOrEmpty(sortOrder))
+            {
+                query.Add($"$orderby={sortOrder.Replace("_desc", " desc")}");
+            }
+
+            var pSize = pageSize ?? 5;
+            var pNumber = pageNumber ?? 1;
+
+            query.Add($"$skip={(pNumber - 1) * pSize}");
+            query.Add($"$top={pSize}");
+            query.Add("$count=true");
+
+            var queryString = string.Join("&", query);
+            var fullUrl = $"{AccountsPath}?{queryString}";
+
+            var response = await _api.GetListAsync<JobReadDto>(fullUrl);
+            var odataResponse = await _api.GetAsync<ODataResponse<JobReadDto>>(fullUrl);
+
+            ViewData["PageNumber"] = pNumber;
+            ViewData["PageSize"] = pSize;
+            ViewData["TotalRecords"] = odataResponse?.Count ?? 0;
+
+            return View(response ?? Enumerable.Empty<JobReadDto>());
         }
 
 

@@ -2,9 +2,15 @@ using JobAPI.Data;
 using JobAPI.Formatters;
 using JobAPI.Repositories;
 using JobAPI.Services;
+using Microsoft.AspNetCore.OData;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.OData.ModelBuilder;
+using SharedLibrary.DTOs;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var modelBuilder = new ODataConventionModelBuilder();
+modelBuilder.EntitySet<JobReadDto>("Jobs");
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("ApplicationDbContext") ?? throw new InvalidOperationException("Connection string 'ApplicatioDbContext' not found.")));
@@ -14,7 +20,15 @@ builder.Services.AddControllers(options =>
     options.RespectBrowserAcceptHeader = true;
     options.ReturnHttpNotAcceptable = true;
     options.OutputFormatters.Add(new CsvOutputFormatter());
-}).AddXmlSerializerFormatters();
+}).AddXmlSerializerFormatters()
+.AddOData(options => options
+        .Select()
+        .Filter()
+        .OrderBy()
+        .Expand()
+        .Count()
+        .SetMaxTop(100)
+        .AddRouteComponents("odata", modelBuilder.GetEdmModel()));
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
